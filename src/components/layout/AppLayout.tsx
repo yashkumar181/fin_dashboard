@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from "react-router-dom"
-import { LayoutDashboard, CreditCard, RefreshCw, Target, Settings, PieChart } from "lucide-react"
+import { LayoutDashboard, CreditCard, RefreshCw, Target, Settings, PieChart, Search } from "lucide-react"
 import { ThemeToggle } from "../theme/ThemeToggle"
+import { CommandMenu } from "./CommandMenu"
 
 const navItems = [
   { name: "Dashboard", path: "/", icon: LayoutDashboard },
@@ -16,6 +17,8 @@ export default function AppLayout() {
 
   return (
     <div className="flex h-screen w-full bg-neutral-50 dark:bg-neutral-950">
+      <CommandMenu />
+      
       <aside className="hidden md:flex flex-col w-64 border-r bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800">
         <div className="h-16 flex items-center px-6 border-b border-neutral-200 dark:border-neutral-800">
           <span className="text-xl font-bold text-neutral-900 dark:text-white">Finance Tracker</span>
@@ -49,6 +52,22 @@ export default function AppLayout() {
         <header className="h-16 flex items-center justify-between md:justify-end px-6 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 md:bg-transparent md:border-none">
           <span className="md:hidden text-lg font-bold text-neutral-900 dark:text-white">Finance Tracker</span>
           <div className="flex items-center gap-4">
+            <button 
+              onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+              className="hidden md:flex items-center gap-2 text-sm text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+            >
+              <Search className="h-4 w-4" />
+              <span>Search...</span>
+              <kbd className="hidden lg:inline-flex items-center gap-1 rounded border border-neutral-300 dark:border-neutral-700 bg-neutral-200 dark:bg-neutral-900 px-1.5 font-mono text-[10px] font-medium text-neutral-600 dark:text-neutral-400">
+                <span className="text-xs">⌘</span>K
+              </kbd>
+            </button>
+            <button 
+              onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+              className="md:hidden p-2 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-md"
+            >
+              <Search className="h-5 w-5" />
+            </button>
             <ThemeToggle />
           </div>
         </header>

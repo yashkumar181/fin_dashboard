@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Target, AlertTriangle, ArrowUp, ArrowDown, GripVertical, CheckCircle2 } from "lucide-react"
 
