@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import AppLayout from "./components/layout/AppLayout"
 import { ThemeProvider } from "./components/theme/ThemeProvider"
-import Dashboard from "./pages/Dashboard" // This is the crucial import
+import Dashboard from "./pages/Dashboard"
+import Accounts from "./pages/Accounts"
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -17,9 +18,11 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route element={<AppLayout />}>
-            {/* The index route now points to our real Dashboard component */}
             <Route index element={<Dashboard />} /> 
-            <Route path="/accounts" element={<PlaceholderPage title="Accounts & Cards" />} />
+            
+            {/* The Accounts route now points to our new Cockpit component */}
+            <Route path="/accounts" element={<Accounts />} />
+            
             <Route path="/subscriptions" element={<PlaceholderPage title="Subscriptions" />} />
             <Route path="/budget" element={<PlaceholderPage title="Budgeting" />} />
             <Route path="/goals" element={<PlaceholderPage title="Financial Goals" />} />
