@@ -2,6 +2,7 @@ import { Link, Outlet, useLocation } from "react-router-dom"
 import { LayoutDashboard, CreditCard, RefreshCw, Target, Settings, PieChart, Search } from "lucide-react"
 import { ThemeToggle } from "../theme/ThemeToggle"
 import { CommandMenu } from "./CommandMenu"
+import { TransactionSheet } from "./TransactionSheet"
 
 const navItems = [
   { name: "Dashboard", path: "/", icon: LayoutDashboard },
@@ -18,6 +19,7 @@ export default function AppLayout() {
   return (
     <div className="flex h-screen w-full bg-neutral-50 dark:bg-neutral-950">
       <CommandMenu />
+      <TransactionSheet />
       
       <aside className="hidden md:flex flex-col w-64 border-r bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800">
         <div className="h-16 flex items-center px-6 border-b border-neutral-200 dark:border-neutral-800">

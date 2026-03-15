@@ -19,10 +19,12 @@ import {
   PlusCircle,
   ArrowRightLeft
 } from "lucide-react"
+import { useAppStore } from "@/store/useAppStore"
 
 export function CommandMenu() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
+  const { openTransactionSheet } = useAppStore()
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -70,7 +72,7 @@ export function CommandMenu() {
         </CommandGroup>
         <CommandSeparator />
         <CommandGroup heading="Quick Actions">
-          <CommandItem onSelect={() => runCommand(() => console.log("Add transaction"))}>
+          <CommandItem onSelect={() => runCommand(() => openTransactionSheet())}>
             <PlusCircle className="mr-2 h-4 w-4" />
             <span>Add Transaction</span>
           </CommandItem>

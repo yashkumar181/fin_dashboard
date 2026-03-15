@@ -6,14 +6,7 @@ import Accounts from "./pages/Accounts"
 import Subscriptions from "./pages/Subscriptions"
 import Budget from "./pages/Budget"
 import Goals from "./pages/Goals"
-
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <div className="p-6 md:p-10">
-      <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">{title}</h1>
-    </div>
-  )
-}
+import Settings from "./pages/Settings"
 
 export default function App() {
   return (
@@ -25,11 +18,10 @@ export default function App() {
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/budget" element={<Budget />} />
-            
-            {/* The Goals route now points to our new Conflict Resolution Engine */}
             <Route path="/goals" element={<Goals />} />
             
-            <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
+            {/* The final route is connected! */}
+            <Route path="/settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>
