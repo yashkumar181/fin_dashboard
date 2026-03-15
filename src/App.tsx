@@ -1,14 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import AppLayout from "./components/layout/AppLayout"
 import { ThemeProvider } from "./components/theme/ThemeProvider"
-
-function Dashboard() {
-  return (
-    <div className="p-6 md:p-10">
-      <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">Analytics Dashboard</h1>
-    </div>
-  )
-}
+import Dashboard from "./pages/Dashboard" // This is the crucial import
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -24,7 +17,8 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route element={<AppLayout />}>
-            <Route path="/" element={<Dashboard />} />
+            {/* The index route now points to our real Dashboard component */}
+            <Route index element={<Dashboard />} /> 
             <Route path="/accounts" element={<PlaceholderPage title="Accounts & Cards" />} />
             <Route path="/subscriptions" element={<PlaceholderPage title="Subscriptions" />} />
             <Route path="/budget" element={<PlaceholderPage title="Budgeting" />} />
