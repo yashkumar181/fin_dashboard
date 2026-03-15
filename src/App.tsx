@@ -3,6 +3,8 @@ import AppLayout from "./components/layout/AppLayout"
 import { ThemeProvider } from "./components/theme/ThemeProvider"
 import Dashboard from "./pages/Dashboard"
 import Accounts from "./pages/Accounts"
+import Subscriptions from "./pages/Subscriptions"
+//import Budget from "./pages/Budget"
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -19,12 +21,8 @@ export default function App() {
         <Routes>
           <Route element={<AppLayout />}>
             <Route index element={<Dashboard />} /> 
-            
-            {/* The Accounts route now points to our new Cockpit component */}
             <Route path="/accounts" element={<Accounts />} />
-            
-            <Route path="/subscriptions" element={<PlaceholderPage title="Subscriptions" />} />
-            <Route path="/budget" element={<PlaceholderPage title="Budgeting" />} />
+            <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/goals" element={<PlaceholderPage title="Financial Goals" />} />
             <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
           </Route>
