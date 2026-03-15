@@ -4,7 +4,7 @@ import { ThemeProvider } from "./components/theme/ThemeProvider"
 import Dashboard from "./pages/Dashboard"
 import Accounts from "./pages/Accounts"
 import Subscriptions from "./pages/Subscriptions"
-//import Budget from "./pages/Budget"
+import Budget from "./pages/Budget"
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -23,6 +23,7 @@ export default function App() {
             <Route index element={<Dashboard />} /> 
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/subscriptions" element={<Subscriptions />} />
+            <Route path="/budget" element={<Budget />} />
             <Route path="/goals" element={<PlaceholderPage title="Financial Goals" />} />
             <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
           </Route>
