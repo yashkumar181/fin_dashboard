@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard"
 import Accounts from "./pages/Accounts"
 import Subscriptions from "./pages/Subscriptions"
 import Budget from "./pages/Budget"
+import Goals from "./pages/Goals"
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -24,7 +25,10 @@ export default function App() {
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/budget" element={<Budget />} />
-            <Route path="/goals" element={<PlaceholderPage title="Financial Goals" />} />
+            
+            {/* The Goals route now points to our new Conflict Resolution Engine */}
+            <Route path="/goals" element={<Goals />} />
+            
             <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
           </Route>
         </Routes>
