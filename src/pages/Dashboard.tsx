@@ -4,8 +4,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from "recharts"
+import { Badge } from "@/components/ui/badge"
 
-// Dummy data for Income vs Expenses 
 const cashFlowData = [
   { month: "Sep", income: 82000, expenses: 58000 },
   { month: "Oct", income: 85000, expenses: 62000 },
@@ -15,7 +15,6 @@ const cashFlowData = [
   { month: "Feb", income: 90000, expenses: 60000 },
 ]
 
-// Dummy data for Expense Breakdown (Donut) 
 const expenseData = [
   { name: "Housing", value: 22000 },
   { name: "Food & Dining", value: 14000 },
@@ -26,12 +25,18 @@ const expenseData = [
 
 const COLORS = ["#0ea5e9", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444"]
 
+const obligations = [
+  { id: 1, name: "Netflix Subscription", amount: 649, date: "Mar 17", type: "Subscription", status: "Upcoming" },
+  { id: 2, name: "HDFC Home Loan EMI", amount: 18500, date: "Mar 20", type: "EMI", status: "Urgent" },
+  { id: 3, name: "Star Health Insurance", amount: 1200, date: "Mar 25", type: "Insurance", status: "Upcoming" },
+  { id: 4, name: "Airtel Fiber Bill", amount: 943, date: "Mar 28", type: "Utility", status: "Upcoming" },
+]
+
 export default function Dashboard() {
   return (
     <div className="p-6 md:p-10 space-y-6">
       <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">Analytics Dashboard</h1>
 
-      {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -78,10 +83,8 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Charts Section */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         
-        {/* Income vs Expenses Bar Chart */}
         <Card className="lg:col-span-4">
           <CardHeader>
             <CardTitle>Income vs. Expenses</CardTitle>
@@ -91,21 +94,20 @@ export default function Dashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={cashFlowData} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#888888" strokeOpacity={0.2} />
-<XAxis
-  dataKey="month"
-  stroke="#888888"
-  tick={{ fill: "#888888", fontSize: 12 }}
-  tickLine={false}
-  axisLine={false}
-/>
-
-<YAxis
-  stroke="#888888"
-  tick={{ fill: "#888888", fontSize: 12 }}
-  tickLine={false}
-  axisLine={false}
-  tickFormatter={(value: number) => `₹${value / 1000}k`}
-/>
+                  <XAxis
+                    dataKey="month"
+                    stroke="#888888"
+                    tick={{ fill: "#888888", fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    stroke="#888888"
+                    tick={{ fill: "#888888", fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value: number) => `₹${value / 1000}k`}
+                  />
                   <RechartsTooltip 
                     cursor={{ fill: 'transparent' }}
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
@@ -119,7 +121,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Expense Breakdown Donut Chart */}
         <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle>Expense Breakdown</CardTitle>
@@ -138,8 +139,8 @@ export default function Dashboard() {
                     dataKey="value"
                   >
                    {expenseData.map((_, index) => (
-  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-))}
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
                   </Pie>
                   <RechartsTooltip 
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
@@ -154,6 +155,50 @@ export default function Dashboard() {
         </Card>
 
       </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Upcoming Obligations</CardTitle>
+            <div className="flex gap-4">
+              <div className="text-center">
+                <p className="text-[10px] uppercase text-neutral-500 font-bold">Next 7d</p>
+                <p className="text-sm font-bold">₹649</p>
+              </div>
+              <div className="text-center border-x px-4 border-neutral-200 dark:border-neutral-800">
+                <p className="text-[10px] uppercase text-neutral-500 font-bold">Next 14d</p>
+                <p className="text-sm font-bold">₹19,149</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[10px] uppercase text-neutral-500 font-bold">Next 30d</p>
+                <p className="text-sm font-bold">₹21,292</p>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {obligations.map((item) => (
+              <div key={item.id} className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-3 last:border-0 last:pb-0">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium leading-none">{item.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-neutral-500">{item.date}</p>
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
+                      {item.type}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className={`text-sm font-bold ${item.status === 'Urgent' ? 'text-red-500' : ''}`}>
+                    ₹{item.amount.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
