@@ -26,7 +26,7 @@
     --radius: 0.5rem;
   }
 
-.dark {
+  .dark {
     --background: 0 0% 4%;
     --foreground: 0 0% 98%;
     --card: 0 0% 7%;
@@ -52,8 +52,31 @@
 @layer base {
   * {
     @apply border-border;
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
   }
+  
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* --- BULLETPROOF SCROLLBAR (Outside of @layer) --- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground) / 0.6);
 }

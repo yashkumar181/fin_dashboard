@@ -54,7 +54,7 @@ export default function AppLayout() {
 
       <main className="flex-1 overflow-y-auto pb-16 md:pb-0 flex flex-col">
         {/* Top Header */}
-        <header className="h-16 flex items-center justify-between px-6 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+        <header className="h-16 flex items-center justify-between px-6 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shrink-0">
           {/* Mobile: Hamburger Menu */}
           <Button variant="ghost" size="icon" className="md:hidden" onClick={openSearch}>
             <Menu className="h-6 w-6" />
@@ -62,7 +62,7 @@ export default function AppLayout() {
 
           <span className="md:hidden text-lg font-bold text-neutral-900 dark:text-white absolute left-1/2 -translate-x-1/2">Finance Tracker</span>
 
-          <div className="flex items-center gap-4 ml-auto">
+          <div className="flex items-center gap-2 sm:gap-4 ml-auto">
             {/* PC: Search Bar */}
             <button onClick={openSearch} className="hidden md:flex items-center gap-2 text-sm text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
               <Search className="h-4 w-4" />
@@ -70,17 +70,15 @@ export default function AppLayout() {
               <kbd className="hidden lg:inline-flex items-center gap-1 rounded border border-neutral-300 dark:border-neutral-700 bg-neutral-200 dark:bg-neutral-900 px-1.5 font-mono text-[10px] font-medium text-neutral-600 dark:text-neutral-400">⌘K</kbd>
             </button>
             
-            {/* PC: Theme Toggle Button */}
-            <div className="hidden md:block">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="text-neutral-600 dark:text-neutral-400"
-              >
-                {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </Button>
-            </div>
+            {/* Theme Toggle Button (Now visible on Mobile & PC) */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="text-neutral-600 dark:text-neutral-400 shrink-0"
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
 
             {/* Profile Nav */}
             <UserNav />
@@ -93,16 +91,16 @@ export default function AppLayout() {
       </main>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 z-50">
-        <ul className="flex justify-around items-center h-16">
-          {navItems.slice(0, 5).map((item) => {
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 z-50 px-1">
+        <ul className="flex justify-between items-center h-16">
+          {navItems.slice(0, 6).map((item) => {
             const isActive = location.pathname === item.path
             const Icon = item.icon
             return (
-              <li key={item.name} className="flex-1">
+              <li key={item.name} className="flex-1 min-w-0">
                 <Link to={item.path} className={`flex flex-col items-center justify-center h-full space-y-1 ${isActive ? "text-neutral-900 dark:text-white" : "text-neutral-500 dark:text-neutral-400"}`}>
-                  <Icon className="h-5 w-5" />
-                  <span className="text-[10px] font-medium">{item.name}</span>
+                  <Icon className="h-5 w-5 shrink-0" />
+                  <span className="text-[9px] sm:text-[10px] font-medium truncate w-full text-center px-0.5">{item.name}</span>
                 </Link>
               </li>
             )
