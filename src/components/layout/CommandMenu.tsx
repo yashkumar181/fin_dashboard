@@ -17,7 +17,8 @@ import {
   Target,
   Settings,
   PlusCircle,
-  ArrowRightLeft
+  ArrowRightLeft,
+  TrendingUp
 } from "lucide-react"
 import { useAppStore } from "@/store/useAppStore"
 
@@ -56,6 +57,10 @@ export function CommandMenu() {
           <CommandItem onSelect={() => runCommand(() => navigate("/accounts"))}>
             <CreditCard className="mr-2 h-4 w-4" />
             <span>Accounts & Cards</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate("/investments"))}>
+            <TrendingUp className="mr-2 h-4 w-4" />
+            <span>Investments</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => navigate("/subscriptions"))}>
             <RefreshCw className="mr-2 h-4 w-4" />

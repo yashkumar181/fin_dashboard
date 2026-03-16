@@ -4,6 +4,7 @@ import AppLayout from "./components/layout/AppLayout"
 import { ThemeProvider } from "./components/theme/ThemeProvider"
 import Dashboard from "./pages/Dashboard"
 import Accounts from "./pages/Accounts"
+import Investments from "./pages/Investments"
 import Subscriptions from "./pages/Subscriptions"
 import Budget from "./pages/Budget"
 import Goals from "./pages/Goals"
@@ -19,6 +20,7 @@ function AnimatedRoutes() {
         <Route element={<AppLayout />}>
           <Route index element={<PageTransition><Dashboard /></PageTransition>} /> 
           <Route path="/accounts" element={<PageTransition><Accounts /></PageTransition>} />
+          <Route path="/investments" element={<PageTransition><Investments /></PageTransition>} />
           <Route path="/subscriptions" element={<PageTransition><Subscriptions /></PageTransition>} />
           <Route path="/budget" element={<PageTransition><Budget /></PageTransition>} />
           <Route path="/goals" element={<PageTransition><Goals /></PageTransition>} />

@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "react-router-dom"
-import { LayoutDashboard, CreditCard, RefreshCw, Target, Settings, PieChart, Menu, Search, Moon, Sun } from "lucide-react"
+import { LayoutDashboard, CreditCard, RefreshCw, Target, Settings, PieChart, Menu, Search, Moon, Sun, TrendingUp } from "lucide-react"
 import { CommandMenu } from "./CommandMenu"
 import { TransactionSheet } from "./TransactionSheet"
 import { UserNav } from "./UserNav"
@@ -9,6 +9,7 @@ import { useTheme } from "../theme/ThemeProvider"
 const navItems = [
   { name: "Dashboard", path: "/", icon: LayoutDashboard },
   { name: "Accounts", path: "/accounts", icon: CreditCard },
+  { name: "Investments", path: "/investments", icon: TrendingUp },
   { name: "Subscriptions", path: "/subscriptions", icon: RefreshCw },
   { name: "Budget", path: "/budget", icon: PieChart },
   { name: "Goals", path: "/goals", icon: Target },
@@ -17,7 +18,7 @@ const navItems = [
 
 export default function AppLayout() {
   const location = useLocation()
-  const { setTheme, theme } = useTheme() // Now used below!
+  const { setTheme, theme } = useTheme()
 
   const openSearch = () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))
@@ -54,7 +55,7 @@ export default function AppLayout() {
       <main className="flex-1 overflow-y-auto pb-16 md:pb-0 flex flex-col">
         {/* Top Header */}
         <header className="h-16 flex items-center justify-between px-6 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
-          {/* Mobile: Hamburger Menu (Opens Search) */}
+          {/* Mobile: Hamburger Menu */}
           <Button variant="ghost" size="icon" className="md:hidden" onClick={openSearch}>
             <Menu className="h-6 w-6" />
           </Button>
@@ -69,7 +70,7 @@ export default function AppLayout() {
               <kbd className="hidden lg:inline-flex items-center gap-1 rounded border border-neutral-300 dark:border-neutral-700 bg-neutral-200 dark:bg-neutral-900 px-1.5 font-mono text-[10px] font-medium text-neutral-600 dark:text-neutral-400">⌘K</kbd>
             </button>
             
-            {/* PC: Theme Toggle Button (Resolves Sun/Moon/setTheme error) */}
+            {/* PC: Theme Toggle Button */}
             <div className="hidden md:block">
               <Button 
                 variant="ghost" 
@@ -81,7 +82,7 @@ export default function AppLayout() {
               </Button>
             </div>
 
-            {/* Profile Nav (Both PC and Phone) */}
+            {/* Profile Nav */}
             <UserNav />
           </div>
         </header>
