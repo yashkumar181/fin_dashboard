@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
 import { AnimatePresence } from "framer-motion"
+import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react"
 import AppLayout from "./components/layout/AppLayout"
 import { ThemeProvider } from "./components/theme/ThemeProvider"
 import Dashboard from "./pages/Dashboard"
@@ -9,6 +10,7 @@ import Subscriptions from "./pages/Subscriptions"
 import Budget from "./pages/Budget"
 import Goals from "./pages/Goals"
 import Settings from "./pages/Settings"
+import { SignInPage, SignUpPage } from "./pages/Auth"
 import { PageTransition } from "./components/layout/PageTransition"
 
 function AnimatedRoutes() {
@@ -17,7 +19,24 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route element={<AppLayout />}>
+        
+        {/* PUBLIC CLERK ROUTES */}
+        <Route path="/sign-in/*" element={<PageTransition><SignInPage /></PageTransition>} />
+        <Route path="/sign-up/*" element={<PageTransition><SignUpPage /></PageTransition>} />
+
+        {/* PROTECTED APP ROUTES */}
+        <Route 
+          element={
+            <>
+              <SignedIn>
+                <AppLayout />
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
+          }
+        >
           <Route index element={<PageTransition><Dashboard /></PageTransition>} /> 
           <Route path="/accounts" element={<PageTransition><Accounts /></PageTransition>} />
           <Route path="/investments" element={<PageTransition><Investments /></PageTransition>} />
@@ -26,6 +45,7 @@ function AnimatedRoutes() {
           <Route path="/goals" element={<PageTransition><Goals /></PageTransition>} />
           <Route path="/settings" element={<PageTransition><Settings /></PageTransition>} />
         </Route>
+
       </Routes>
     </AnimatePresence>
   )
