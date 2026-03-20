@@ -3,8 +3,7 @@ import { Link } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ArrowUpRight, ArrowDownRight, Wallet, Target, CreditCard, Receipt, TrendingUp, ChevronRight, Zap } from "lucide-react"
+import { ArrowDownRight, Wallet, Target, CreditCard, Receipt, TrendingUp, ChevronRight, Zap } from "lucide-react"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts"
 
 // --- Highly Realistic Aggregated Mock Data ---
