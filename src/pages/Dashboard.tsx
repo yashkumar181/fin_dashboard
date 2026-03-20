@@ -1,3 +1,4 @@
+// src/pages/Dashboard.tsx
 import { useUser } from "@clerk/clerk-react"
 import { Link } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -5,8 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ArrowDownRight, Wallet, Target, CreditCard, Receipt, TrendingUp, ChevronRight, Zap } from "lucide-react"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts"
+import { useAppStore } from "@/store/useAppStore"
 
-// --- Highly Realistic Aggregated Mock Data ---
+// --- Mock Data that hasn't been moved to the store yet ---
 const netWorthHistory = [
   { month: "Sep", value: 1850000 },
   { month: "Oct", value: 1920000 },
@@ -14,13 +16,6 @@ const netWorthHistory = [
   { month: "Dec", value: 2050000 },
   { month: "Jan", value: 2150000 },
   { month: "Feb", value: 2260000 },
-]
-
-const recentTransactions = [
-  { id: 1, name: "Amazon", category: "Shopping", amount: -4500, date: "Today", icon: "🛒" },
-  { id: 2, name: "Salary", category: "Income", amount: 125000, date: "Yesterday", icon: "💰" },
-  { id: 3, name: "Uber", category: "Transport", amount: -450, date: "Yesterday", icon: "🚗" },
-  { id: 4, name: "Netflix", category: "Entertainment", amount: -649, date: "Mar 14", icon: "🎬" },
 ]
 
 const upcomingBills = [
@@ -32,10 +27,19 @@ const upcomingBills = [
 export default function Dashboard() {
   const { user } = useUser()
 
-  // Calculate some dynamic stats for the top cards
-  const currentNetWorth = netWorthHistory[netWorthHistory.length - 1].value
+  // Pulling our dynamic data and actions from the Zustand Store
+  const { 
+    currentNetWorth, 
+    monthlyBudget, 
+    monthlySpent, 
+    transactions, 
+    openTransactionSheet 
+  } = useAppStore()
+
+  // Dynamic calculations based on store state
   const previousNetWorth = netWorthHistory[netWorthHistory.length - 2].value
   const netWorthGrowth = ((currentNetWorth - previousNetWorth) / previousNetWorth) * 100
+  const spendingProgress = (monthlySpent / monthlyBudget) * 100
 
   // Custom Chart Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -63,7 +67,10 @@ export default function Dashboard() {
           </h1>
           <p className="text-neutral-500 mt-2">Here is your financial summary for this month.</p>
         </div>
-        <Button className="bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 shadow-lg">
+        <Button 
+          onClick={openTransactionSheet} 
+          className="bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200 shadow-lg transition-all active:scale-95"
+        >
           <Zap className="mr-2 h-4 w-4 text-yellow-400 dark:text-yellow-600 fill-current" />
           Quick Transfer
         </Button>
@@ -71,22 +78,22 @@ export default function Dashboard() {
 
       {/* --- TOP ROW: The Hero Metrics --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Metric 1: Net Worth (Highlighted) */}
-        <Card className="bg-gradient-to-br from-neutral-900 to-neutral-800 dark:from-neutral-100 dark:to-neutral-300 text-white dark:text-neutral-900 border-none shadow-lg relative overflow-hidden">
+        {/* Metric 1: Net Worth (Highlighted & Dynamic) */}
+        <Card className="bg-gradient-to-br from-neutral-900 to-neutral-800 dark:from-neutral-100 dark:to-neutral-300 text-white dark:text-neutral-900 border-none shadow-lg relative overflow-hidden transition-all duration-500">
           <div className="absolute top-0 right-0 p-4 opacity-10">
             <Wallet className="h-24 w-24" />
           </div>
           <CardContent className="p-6 relative z-10">
             <p className="text-sm font-medium opacity-80 mb-1">Total Net Worth</p>
             <h2 className="text-4xl font-bold tracking-tight mb-4">₹{currentNetWorth.toLocaleString()}</h2>
-            <div className="flex items-center text-sm font-medium bg-white/20 dark:bg-black/10 w-fit px-2.5 py-1 rounded-full backdrop-blur-sm">
+            <div className={`flex items-center text-sm font-medium bg-white/20 dark:bg-black/10 w-fit px-2.5 py-1 rounded-full backdrop-blur-sm ${netWorthGrowth >= 0 ? 'text-green-400 dark:text-green-600' : 'text-red-400 dark:text-red-600'}`}>
               <TrendingUp className="h-4 w-4 mr-1" />
-              +{netWorthGrowth.toFixed(1)}% from last month
+              {netWorthGrowth >= 0 ? '+' : ''}{netWorthGrowth.toFixed(1)}% from last month
             </div>
           </CardContent>
         </Card>
 
-        {/* Metric 2: Monthly Spending */}
+        {/* Metric 2: Monthly Spending (Dynamic) */}
         <Card>
           <CardContent className="p-6 flex flex-col justify-between h-full">
             <div>
@@ -96,16 +103,19 @@ export default function Dashboard() {
                   <ArrowDownRight className="h-4 w-4 text-red-600 dark:text-red-500" />
                 </div>
               </div>
-              <h2 className="text-3xl font-bold text-neutral-900 dark:text-white mb-1">₹45,200</h2>
-              <p className="text-sm text-neutral-500">of ₹60,000 budget</p>
+              <h2 className="text-3xl font-bold text-neutral-900 dark:text-white mb-1">₹{monthlySpent.toLocaleString()}</h2>
+              <p className="text-sm text-neutral-500">of ₹{monthlyBudget.toLocaleString()} budget</p>
             </div>
             <div className="mt-4">
-              <Progress value={75} className="h-2 [&>div]:bg-neutral-900 dark:[&>div]:bg-white" />
+              <Progress 
+                value={Math.min(spendingProgress, 100)} 
+                className={`h-2 ${spendingProgress > 90 ? '[&>div]:bg-red-500' : '[&>div]:bg-neutral-900 dark:[&>div]:bg-white'}`} 
+              />
             </div>
           </CardContent>
         </Card>
 
-        {/* Metric 3: Active Debt / Cards */}
+        {/* Metric 3: Active Debt / Cards (Static for now) */}
         <Card>
           <CardContent className="p-6 flex flex-col justify-between h-full">
             <div>
@@ -188,7 +198,7 @@ export default function Dashboard() {
       {/* --- BOTTOM ROW: Recent Activity & Upcoming Bills --- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* Recent Transactions List */}
+        {/* Recent Transactions List (Dynamic) */}
         <Card className="shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base font-semibold">Recent Transactions</CardTitle>
@@ -197,26 +207,30 @@ export default function Dashboard() {
             </Link>
           </CardHeader>
           <CardContent className="space-y-6">
-            {recentTransactions.map((tx) => (
-              <div key={tx.id} className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-lg shadow-sm">
-                    {tx.icon}
+            {transactions.length === 0 ? (
+              <p className="text-sm text-neutral-500 text-center py-4">No recent transactions.</p>
+            ) : (
+              transactions.slice(0, 4).map((tx) => (
+                <div key={tx.id} className="flex items-center justify-between animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-lg shadow-sm">
+                      {tx.icon}
+                    </div>
+                    <div>
+                      <p className="font-medium text-neutral-900 dark:text-white leading-none mb-1.5">{tx.name}</p>
+                      <p className="text-xs text-neutral-500">{tx.date} • {tx.category}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-neutral-900 dark:text-white leading-none mb-1.5">{tx.name}</p>
-                    <p className="text-xs text-neutral-500">{tx.date} • {tx.category}</p>
+                  <div className={`font-semibold ${tx.type === 'income' ? 'text-green-600 dark:text-green-500' : 'text-neutral-900 dark:text-white'}`}>
+                    {tx.type === 'income' ? '+' : '-'}₹{Math.abs(tx.amount).toLocaleString()}
                   </div>
                 </div>
-                <div className={`font-semibold ${tx.amount > 0 ? 'text-green-600 dark:text-green-500' : 'text-neutral-900 dark:text-white'}`}>
-                  {tx.amount > 0 ? '+' : ''}₹{Math.abs(tx.amount).toLocaleString()}
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 
-        {/* Upcoming Subscriptions List */}
+        {/* Upcoming Subscriptions List (Static for now) */}
         <Card className="shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -243,7 +257,6 @@ export default function Dashboard() {
         </Card>
 
       </div>
-
     </div>
   )
 }
