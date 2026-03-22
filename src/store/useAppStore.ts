@@ -1,96 +1,139 @@
 // src/store/useAppStore.ts
-import { create } from 'zustand'
+// Replaces hardcoded mock data with real API state.
+// The store holds fetched data + loading/error flags.
+// Pages call the fetch actions on mount; the store caches the result.
 
-export type TransactionType = 'income' | 'expense'
+import { create } from "zustand";
+import type {
+  DashboardData,
+  Account,
+  Transaction,
+  BudgetResponse,
+  SubscriptionsResponse,
+  InvestmentsResponse,
+  UserProfile,
+} from "@/lib/api";
 
-export interface Transaction {
-  id: string
-  name: string
-  category: string
-  amount: number
-  date: string
-  type: TransactionType
-  icon: string
-}
+export type TransactionType = "income" | "expense";
 
-export interface BudgetCategory {
-  id: number
-  name: string
-  spent: number
-  limit: number
-  icon: string
-}
+// ─── Store shape ──────────────────────────────────────────────────────────────
 
 interface AppState {
-  isTransactionSheetOpen: boolean
-  openTransactionSheet: () => void
-  closeTransactionSheet: () => void
+  // ── Transaction sheet (quick-add UI) ──────────────────────────────────────
+  isTransactionSheetOpen: boolean;
+  openTransactionSheet: () => void;
+  closeTransactionSheet: () => void;
 
-  currentNetWorth: number
-  monthlyBudget: number
-  monthlySpent: number
-  transactions: Transaction[]
-  categories: BudgetCategory[]
-  
-  // Actions
-  addTransaction: (tx: Omit<Transaction, 'id'>) => void
-  addCategory: (category: Omit<BudgetCategory, 'id' | 'spent'>) => void // <-- NEW ACTION
+  // ── User ──────────────────────────────────────────────────────────────────
+  user: UserProfile | null;
+  userLoading: boolean;
+  setUser: (u: UserProfile | null) => void;
+
+  // ── Dashboard ─────────────────────────────────────────────────────────────
+  dashboard: DashboardData | null;
+  dashboardLoading: boolean;
+  dashboardError: string | null;
+  setDashboard: (d: DashboardData) => void;
+  setDashboardLoading: (v: boolean) => void;
+  setDashboardError: (e: string | null) => void;
+
+  // ── Accounts ──────────────────────────────────────────────────────────────
+  accounts: Account[];
+  accountsLoading: boolean;
+  setAccounts: (a: Account[]) => void;
+  setAccountsLoading: (v: boolean) => void;
+
+  // ── Transactions ──────────────────────────────────────────────────────────
+  transactions: Transaction[];
+  transactionsLoading: boolean;
+  setTransactions: (t: Transaction[]) => void;
+  setTransactionsLoading: (v: boolean) => void;
+
+  // ── Subscriptions ─────────────────────────────────────────────────────────
+  subscriptions: SubscriptionsResponse | null;
+  subscriptionsLoading: boolean;
+  setSubscriptions: (s: SubscriptionsResponse) => void;
+  setSubscriptionsLoading: (v: boolean) => void;
+
+  // ── Budget ────────────────────────────────────────────────────────────────
+  budget: BudgetResponse | null;
+  budgetLoading: boolean;
+  setBudget: (b: BudgetResponse) => void;
+  setBudgetLoading: (v: boolean) => void;
+
+  // ── Investments ───────────────────────────────────────────────────────────
+  investments: InvestmentsResponse | null;
+  investmentsLoading: boolean;
+  setInvestments: (i: InvestmentsResponse) => void;
+  setInvestmentsLoading: (v: boolean) => void;
+
+  // ── Legacy computed values (derived from dashboard data) ──────────────────
+  // These keep compatibility with components that read from the store directly
+  currentNetWorth: number;
+  monthlyBudget: number;
+  monthlySpent: number;
 }
 
+// ─── Store ────────────────────────────────────────────────────────────────────
+
 export const useAppStore = create<AppState>((set) => ({
+  // Transaction sheet
   isTransactionSheetOpen: false,
   openTransactionSheet: () => set({ isTransactionSheetOpen: true }),
   closeTransactionSheet: () => set({ isTransactionSheetOpen: false }),
 
-  currentNetWorth: 2260000,
-  monthlyBudget: 60000,
-  monthlySpent: 45200,
-  
-  categories: [
-    { id: 1, name: "Housing & Rent", spent: 25000, limit: 25000, icon: "🏠" },
-    { id: 2, name: "Food & Dining", spent: 8500, limit: 12000, icon: "🍔" },
-    { id: 3, name: "Transport", spent: 4200, limit: 5000, icon: "🚗" },
-    { id: 4, name: "Shopping", spent: 5000, limit: 4000, icon: "🛍️" },
-    { id: 5, name: "Entertainment", spent: 1500, limit: 4000, icon: "🎬" },
-    { id: 6, name: "Utilities", spent: 1000, limit: 10000, icon: "⚡" },
-  ],
+  // User
+  user: null,
+  userLoading: false,
+  setUser: (u) => set({ user: u }),
 
-  transactions: [
-    { id: '1', name: "Amazon", category: "Shopping", amount: 4500, date: "Today", type: "expense", icon: "🛒" },
-    { id: '2', name: "Salary", category: "Income", amount: 125000, date: "Yesterday", type: "income", icon: "💰" },
-    { id: '3', name: "Uber", category: "Transport", amount: 450, date: "Yesterday", type: "expense", icon: "🚗" },
-  ],
+  // Dashboard
+  dashboard: null,
+  dashboardLoading: false,
+  dashboardError: null,
+  setDashboard: (d) =>
+    set({
+      dashboard: d,
+      // Keep legacy fields in sync so existing components keep working
+      currentNetWorth: d.netWorth,
+      monthlyBudget: d.monthlyBudget,
+      monthlySpent: d.monthlySpent,
+    }),
+  setDashboardLoading: (v) => set({ dashboardLoading: v }),
+  setDashboardError: (e) => set({ dashboardError: e }),
 
-  addTransaction: (tx) => set((state) => {
-    const newTx = { ...tx, id: Math.random().toString(36).substr(2, 9) }
-    const isExpense = tx.type === 'expense'
-    
-    const updatedCategories = state.categories.map(cat => {
-      const isMatch = cat.name.includes(tx.category) || tx.category.includes(cat.name.split(' ')[0]);
-      if (isExpense && isMatch) {
-        return { ...cat, spent: cat.spent + tx.amount }
-      }
-      return cat
-    })
+  // Accounts
+  accounts: [],
+  accountsLoading: false,
+  setAccounts: (a) => set({ accounts: a }),
+  setAccountsLoading: (v) => set({ accountsLoading: v }),
 
-    return {
-      transactions: [newTx, ...state.transactions],
-      currentNetWorth: isExpense ? state.currentNetWorth - tx.amount : state.currentNetWorth + tx.amount,
-      monthlySpent: isExpense ? state.monthlySpent + tx.amount : state.monthlySpent,
-      categories: updatedCategories
-    }
-  }),
+  // Transactions
+  transactions: [],
+  transactionsLoading: false,
+  setTransactions: (t) => set({ transactions: t }),
+  setTransactionsLoading: (v) => set({ transactionsLoading: v }),
 
-  // NEW: Add a category and optionally increase the overall monthly budget limit
-  addCategory: (newCategory) => set((state) => {
-    const category: BudgetCategory = {
-      ...newCategory,
-      id: Math.max(0, ...state.categories.map(c => c.id)) + 1,
-      spent: 0
-    }
-    return {
-      categories: [...state.categories, category],
-      monthlyBudget: state.monthlyBudget + newCategory.limit // Expands your total budget
-    }
-  })
-}))
+  // Subscriptions
+  subscriptions: null,
+  subscriptionsLoading: false,
+  setSubscriptions: (s) => set({ subscriptions: s }),
+  setSubscriptionsLoading: (v) => set({ subscriptionsLoading: v }),
+
+  // Budget
+  budget: null,
+  budgetLoading: false,
+  setBudget: (b) => set({ budget: b }),
+  setBudgetLoading: (v) => set({ budgetLoading: v }),
+
+  // Investments
+  investments: null,
+  investmentsLoading: false,
+  setInvestments: (i) => set({ investments: i }),
+  setInvestmentsLoading: (v) => set({ investmentsLoading: v }),
+
+  // Legacy computed fields (populated when dashboard loads)
+  currentNetWorth: 0,
+  monthlyBudget: 0,
+  monthlySpent: 0,
+}));
