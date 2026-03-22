@@ -79,7 +79,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const clerkRes = await fetch(`https://api.clerk.com/v1/users/${clerkUserId}`, {
         headers: { Authorization: `Bearer ${clerkSecretKey}` },
       });
-      const clerkUser = await clerkRes.json();
+      const clerkUser = await clerkRes.json() as any;
       const phone: string | undefined = clerkUser.unsafe_metadata?.phone;
 
       if (!phone) {

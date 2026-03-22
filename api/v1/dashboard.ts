@@ -116,11 +116,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const netWorth = bankBalance - creditDebt;
 
   // --- Monthly spend vs budget ---
-  const monthlySpent = parseFloat(monthlySpentRow[0]?.total as string) || 0;
-  const monthlyBudget = parseFloat(totalBudgetRow[0]?.total as string) || 0;
+  const monthlySpent = parseFloat((monthlySpentRow as any[])[0]?.total as string) || 0;
+  const monthlyBudget = parseFloat((totalBudgetRow as any[])[0]?.total as string) || 0;
 
   // --- Active debt summary (first credit card) ---
-  const primaryCard = creditCards[0] || null;
+  const primaryCard = (creditCards as any[])[0] || null;
 
   // --- Wealth history: build cumulative running balance ---
   // For the chart we show income - expenses per month

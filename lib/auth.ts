@@ -71,7 +71,7 @@ export async function requireAuth(
       return null;
     }
 
-    const clerkUser = await clerkRes.json();
+    const clerkUser = await clerkRes.json() as any;
 
     // Extract phone from unsafeMetadata (set during onboarding)
     const phone: string | undefined = clerkUser.unsafe_metadata?.phone;
@@ -94,7 +94,7 @@ export async function requireAuth(
       LIMIT 1
     `;
 
-    if (!rows.length) {
+    if (!(rows as any[]).length) {
       res.status(403).json({
         error: "User not found in database. Please contact support.",
       });
@@ -103,7 +103,7 @@ export async function requireAuth(
 
     return {
       clerkUserId,
-      dbUserId: rows[0].id as number,
+      dbUserId: (rows as any[])[0].id as number,
       phone: normalizedPhone,
     };
   } catch (err) {

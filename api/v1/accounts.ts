@@ -1,9 +1,4 @@
 // api/v1/accounts.ts
-// GET    /api/v1/accounts          — list all accounts for auth'd user
-// POST   /api/v1/accounts          — create a new account
-// PUT    /api/v1/accounts?id=N     — update account (balance, nickname etc.)
-// DELETE /api/v1/accounts?id=N     — soft-delete (set is_active = false)
-
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getDb } from "../../lib/db";
 import { requireAuth, handleOptions } from "../../lib/auth";
@@ -63,7 +58,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: "nickname, category and type are required" });
     }
 
-    // If setting as default, unset previous default first
     if (isDefault) {
       await sql`
         UPDATE accounts SET is_default = FALSE
@@ -71,7 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `;
     }
 
-    const [row] = await sql`
+    const insertRows = await sql`
       INSERT INTO accounts
         (user_id, nickname, bank_name, account_category, account_type,
          balance, credit_limit, outstanding, is_default)
@@ -80,7 +74,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
          ${balance}, ${creditLimit}, ${outstanding}, ${isDefault})
       RETURNING id, nickname, account_category, account_type, balance,
                 credit_limit, outstanding, is_default
-    `;
+    ` as any[];
+    const row = insertRows[0];
 
     return res.status(201).json({
       id: row.id,
@@ -101,17 +96,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { nickname, bankName, balance, outstanding, isDefault } = req.body;
 
-    // Verify ownership
-    const [existing] = await sql`
+    const existingRows = await sql`
       SELECT id FROM accounts WHERE id = ${accountId} AND user_id = ${uid}
-    `;
-    if (!existing) return res.status(404).json({ error: "Account not found" });
+    ` as any[];
+    if (!existingRows[0]) return res.status(404).json({ error: "Account not found" });
 
     if (isDefault) {
       await sql`UPDATE accounts SET is_default = FALSE WHERE user_id = ${uid}`;
     }
 
-    const [updated] = await sql`
+    const updatedRows = await sql`
       UPDATE accounts
       SET
         nickname    = COALESCE(${nickname ?? null}, nickname),
@@ -122,7 +116,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       WHERE id = ${accountId} AND user_id = ${uid}
       RETURNING id, nickname, account_category, account_type, balance,
                 credit_limit, outstanding, is_default
-    `;
+    ` as any[];
+    const updated = updatedRows[0];
 
     return res.status(200).json({
       id: updated.id,
