@@ -12,18 +12,19 @@ import { getDb } from "../../lib/db";
 import { requireAuth, handleOptions } from "../../lib/auth";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+
   if (handleOptions(req, res)) return;
 
   const auth = await requireAuth(req, res);
   if (!auth) return;
 
   const sql = getDb();
-  // investments table uses Clerk user_id (TEXT), not numeric DB id
   const clerkUid = auth.clerkUserId;
 
-  // ── GET: list holdings ────────────────────────────────────────────────────
+  // ───────────────── GET ─────────────────
   if (req.method === "GET") {
-    const rows = await sql`
+
+    const rowsRaw = await sql`
       SELECT id, symbol, asset_name, asset_type,
              shares_owned, average_buy_price, current_price,
              created_at, updated_at
@@ -32,17 +33,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ORDER BY asset_type, symbol
     `;
 
+    const rows = rowsRaw as any[];
+
     let totalValue = 0;
     let totalInvested = 0;
 
-    const holdings = (rows as any[]).map((r) => {
+    const holdings = rows.map((r) => {
+
       const shares = parseFloat(r.shares_owned);
       const avgPrice = parseFloat(r.average_buy_price);
       const currentPrice = parseFloat(r.current_price);
+
       const invested = shares * avgPrice;
       const current = shares * currentPrice;
       const profit = current - invested;
-      const profitPct = invested > 0 ? (profit / invested) * 100 : 0;
+
+      const profitPct =
+        invested > 0 ? (profit / invested) * 100 : 0;
 
       totalValue += current;
       totalInvested += invested;
@@ -64,18 +71,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     const totalProfit = totalValue - totalInvested;
-    const totalProfitPct = totalInvested > 0 ? (totalProfit / totalInvested) * 100 : 0;
 
-    // Group by asset type for allocation chart
+    const totalProfitPct =
+      totalInvested > 0
+        ? (totalProfit / totalInvested) * 100
+        : 0;
+
     const allocationMap: Record<string, number> = {};
+
     for (const h of holdings) {
-      allocationMap[h.type] = (allocationMap[h.type] || 0) + h.currentValue;
+      allocationMap[h.type] =
+        (allocationMap[h.type] || 0) + h.currentValue;
     }
-    const allocation = Object.entries(allocationMap).map(([type, value]) => ({
-      type,
-      value,
-      percentage: totalValue > 0 ? Math.round((value / totalValue) * 100) : 0,
-    }));
+
+    const allocation = Object.entries(allocationMap).map(
+      ([type, value]) => ({
+        type,
+        value,
+        percentage:
+          totalValue > 0
+            ? Math.round((value / totalValue) * 100)
+            : 0,
+      })
+    );
 
     return res.status(200).json({
       holdings,
@@ -90,28 +108,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // ── POST: add holding ─────────────────────────────────────────────────────
+  // ───────────────── POST ─────────────────
   if (req.method === "POST") {
-    const { symbol, assetName, assetType, sharesOwned, averageBuyPrice, currentPrice } =
-      req.body;
 
-    if (!symbol || !assetName || !assetType || !sharesOwned || !averageBuyPrice) {
+    const {
+      symbol,
+      assetName,
+      assetType,
+      sharesOwned,
+      averageBuyPrice,
+      currentPrice,
+    } = req.body;
+
+    if (
+      !symbol ||
+      !assetName ||
+      !assetType ||
+      !sharesOwned ||
+      !averageBuyPrice
+    ) {
       return res.status(400).json({
-        error: "symbol, assetName, assetType, sharesOwned, averageBuyPrice are required",
+        error:
+          "symbol, assetName, assetType, sharesOwned, averageBuyPrice are required",
       });
     }
 
-    const [row] = await sql`
+    const insertRaw = await sql`
       INSERT INTO investments
         (user_id, symbol, asset_name, asset_type,
          shares_owned, average_buy_price, current_price)
       VALUES
-        (${clerkUid}, ${symbol.toUpperCase()}, ${assetName}, ${assetType},
-         ${parseFloat(sharesOwned)}, ${parseFloat(averageBuyPrice)},
+        (${clerkUid},
+         ${symbol.toUpperCase()},
+         ${assetName},
+         ${assetType},
+         ${parseFloat(sharesOwned)},
+         ${parseFloat(averageBuyPrice)},
          ${parseFloat(currentPrice || averageBuyPrice)})
-      RETURNING id, symbol, asset_name, asset_type, shares_owned,
-                average_buy_price, current_price
+      RETURNING id, symbol, asset_name, asset_type,
+                shares_owned, average_buy_price, current_price
     `;
+
+    const row = (insertRaw as any[])[0];
 
     return res.status(201).json({
       id: row.id,
@@ -124,25 +162,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // ── PUT: update price or shares ───────────────────────────────────────────
+  // ───────────────── PUT ─────────────────
   if (req.method === "PUT") {
+
     const holdingId = req.query.id as string;
-    if (!holdingId) return res.status(400).json({ error: "id required" });
 
-    const { currentPrice, sharesOwned, averageBuyPrice } = req.body;
+    if (!holdingId)
+      return res.status(400).json({ error: "id required" });
 
-    const [updated] = await sql`
+    const {
+      currentPrice,
+      sharesOwned,
+      averageBuyPrice,
+    } = req.body;
+
+    const updateRaw = await sql`
       UPDATE investments
       SET
-        current_price     = COALESCE(${currentPrice ? parseFloat(currentPrice) : null}, current_price),
-        shares_owned      = COALESCE(${sharesOwned ? parseFloat(sharesOwned) : null}, shares_owned),
-        average_buy_price = COALESCE(${averageBuyPrice ? parseFloat(averageBuyPrice) : null}, average_buy_price),
-        updated_at        = NOW()
-      WHERE id = ${holdingId} AND user_id = ${clerkUid}
-      RETURNING id, symbol, shares_owned, average_buy_price, current_price
+        current_price =
+          COALESCE(${currentPrice ? parseFloat(currentPrice) : null}, current_price),
+
+        shares_owned =
+          COALESCE(${sharesOwned ? parseFloat(sharesOwned) : null}, shares_owned),
+
+        average_buy_price =
+          COALESCE(${averageBuyPrice ? parseFloat(averageBuyPrice) : null}, average_buy_price),
+
+        updated_at = NOW()
+
+      WHERE id = ${holdingId}
+        AND user_id = ${clerkUid}
+
+      RETURNING id, symbol, shares_owned,
+                average_buy_price, current_price
     `;
 
-    if (!updated) return res.status(404).json({ error: "Holding not found" });
+    const updated = (updateRaw as any[])[0];
+
+    if (!updated)
+      return res.status(404).json({ error: "Holding not found" });
 
     return res.status(200).json({
       id: updated.id,
@@ -153,12 +211,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // ── DELETE ────────────────────────────────────────────────────────────────
+  // ───────────────── DELETE ─────────────────
   if (req.method === "DELETE") {
-    const holdingId = req.query.id as string;
-    if (!holdingId) return res.status(400).json({ error: "id required" });
 
-    await sql`DELETE FROM investments WHERE id = ${holdingId} AND user_id = ${clerkUid}`;
+    const holdingId = req.query.id as string;
+
+    if (!holdingId)
+      return res.status(400).json({ error: "id required" });
+
+    await sql`
+      DELETE FROM investments
+      WHERE id = ${holdingId}
+      AND user_id = ${clerkUid}
+    `;
 
     return res.status(200).json({ deleted: holdingId });
   }
