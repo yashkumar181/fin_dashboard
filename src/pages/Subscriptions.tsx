@@ -28,7 +28,6 @@ export default function Subscriptions() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // New subscription form
   const [form, setForm] = useState({
     serviceName: "", amount: "", billingDay: "", category: "",
   })
@@ -90,7 +89,6 @@ export default function Subscriptions() {
   const subs = subscriptions?.subscriptions ?? []
   const summary = subscriptions?.summary
 
-  // Split: upcoming (due within 5 days) vs regular
   const dueSoon = subs.filter((s) => s.daysUntil !== null && s.daysUntil <= 5)
   const active = subs.filter((s) => s.status === "active")
 
@@ -237,7 +235,7 @@ export default function Subscriptions() {
                         <div className="flex items-center gap-2">
                           <h3 className="text-sm font-medium text-neutral-900 dark:text-white">{sub.name}</h3>
                           {sub.paidThisMonth && (
-                            <CheckCircle2 className="h-4 w-4 text-green-500" title="Paid this month" />
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
                           )}
                         </div>
                         <div className="flex items-center gap-3 mt-1 text-xs text-neutral-500">
@@ -262,6 +260,7 @@ export default function Subscriptions() {
                         </div>
                         <div className="text-[10px] text-neutral-500 uppercase mt-0.5">Monthly</div>
                       </div>
+                      {/* ✅ title is on <Button>, NOT on the icon */}
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           size="sm" variant="ghost"
