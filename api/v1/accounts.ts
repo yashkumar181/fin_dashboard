@@ -1,4 +1,10 @@
 // api/v1/accounts.ts
+// GET    /api/v1/accounts          — list all accounts for auth'd user
+// POST   /api/v1/accounts          — create a new account
+// PUT    /api/v1/accounts?id=N     — update account (balance, nickname etc.)
+// DELETE /api/v1/accounts?id=N     — soft-delete (set is_active = false)
+
+
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getDb } from "../../lib/db";
 import { requireAuth, handleOptions } from "../../lib/auth";

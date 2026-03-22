@@ -3,7 +3,6 @@
 // POST   /api/v1/budget            — create/upsert a budget category limit
 // PUT    /api/v1/budget?id=N       — update monthly_limit
 // DELETE /api/v1/budget?id=N       — delete budget rule
-
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getDb } from "../../lib/db";
 import { requireAuth, handleOptions } from "../../lib/auth";
@@ -83,13 +82,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: "category and monthlyLimit are required" });
     }
 
-    const [row] = await sql`
+    const insertRows = await sql`
       INSERT INTO budgets (user_id, category, monthly_limit, month_year)
       VALUES (${uid}, ${category}, ${parseFloat(monthlyLimit)}, ${month})
       ON CONFLICT (user_id, category, month_year)
       DO UPDATE SET monthly_limit = ${parseFloat(monthlyLimit)}
       RETURNING id, category, monthly_limit, month_year
-    `;
+    ` as any[];
+    const row = insertRows[0];
 
     return res.status(201).json({
       id: row.id,
@@ -107,12 +107,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { monthlyLimit } = req.body;
     if (!monthlyLimit) return res.status(400).json({ error: "monthlyLimit required" });
 
-    const [updated] = await sql`
+    const updatedRows = await sql`
       UPDATE budgets
       SET monthly_limit = ${parseFloat(monthlyLimit)}
       WHERE id = ${budgetId} AND user_id = ${uid}
       RETURNING id, category, monthly_limit, month_year
-    `;
+    ` as any[];
+    const updated = updatedRows[0];
 
     if (!updated) return res.status(404).json({ error: "Budget not found" });
 
