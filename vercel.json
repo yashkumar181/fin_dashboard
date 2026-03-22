@@ -1,4 +1,7 @@
 {
-  "buildCommand": "tsc -p tsconfig.app.json --noEmit false --noEmit && vite build",
-  "outputDirectory": "dist"
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "@vercel/node"
+    }
+  }
 }
