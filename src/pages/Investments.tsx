@@ -343,6 +343,23 @@ export default function Investments() {
           </CardContent>
         </Card>
       </div>
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle>Live Market</CardTitle>
+          <CardDescription>Real-time prices</CardDescription>
+        </CardHeader>
+
+      <CardContent>
+        {holdings.map((h) => (
+          <div key={h.id} className="flex justify-between py-2 border-b">
+          <span className="font-medium">{h.symbol}</span>
+          <span>
+          ₹{h.currentPrice.toLocaleString()}
+        </span>
+      </div>
+    ))}
+  </CardContent>
+</Card>
 
       {/* Holdings table */}
       <Card className="shadow-sm">

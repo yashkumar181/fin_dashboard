@@ -10,7 +10,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getDb } from "../../lib/db";
 import { requireAuth, handleOptions } from "../../lib/auth";
-
+import fetch from "node-fetch";
 export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (handleOptions(req, res)) return;
@@ -20,94 +20,128 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const sql = getDb();
   const clerkUid = auth.clerkUserId;
-
   // ───────────────── GET ─────────────────
   if (req.method === "GET") {
 
-    const rowsRaw = await sql`
-      SELECT id, symbol, asset_name, asset_type,
-             shares_owned, average_buy_price, current_price,
-             created_at, updated_at
-      FROM investments
-      WHERE user_id = ${clerkUid}
-      ORDER BY asset_type, symbol
-    `;
+  const rowsRaw = await sql`
+    SELECT id, symbol, asset_name, asset_type,
+           shares_owned, average_buy_price, current_price,
+           created_at, updated_at
+    FROM investments
+    WHERE user_id = ${clerkUid}
+    ORDER BY asset_type, symbol
+  `;
 
-    const rows = rowsRaw as any[];
+  const rows = rowsRaw as any[];
 
-    let totalValue = 0;
-    let totalInvested = 0;
+  const holdings = await Promise.all(
+    rows.map(async (r) => {
+      try {
+        const res = await fetch(
+          `https://finnhub.io/api/v1/quote?symbol=${r.symbol}&token=${process.env.FINNHUB_API_KEY}`
+        );
 
-    const holdings = rows.map((r) => {
+        const data: any = await res.json();
 
-      const shares = parseFloat(r.shares_owned);
-      const avgPrice = parseFloat(r.average_buy_price);
-      const currentPrice = parseFloat(r.current_price);
+        const currentPrice = data.c || parseFloat(r.current_price);
 
-      const invested = shares * avgPrice;
-      const current = shares * currentPrice;
-      const profit = current - invested;
+        const shares = parseFloat(r.shares_owned);
+        const avgPrice = parseFloat(r.average_buy_price);
 
-      const profitPct =
-        invested > 0 ? (profit / invested) * 100 : 0;
+        const invested = shares * avgPrice;
+        const current = shares * currentPrice;
+        const profit = current - invested;
 
-      totalValue += current;
-      totalInvested += invested;
+        const profitPct =
+          invested > 0 ? (profit / invested) * 100 : 0;
 
-      return {
-        id: r.id,
-        symbol: r.symbol,
-        name: r.asset_name,
-        type: r.asset_type,
-        shares,
-        avgPrice,
-        currentPrice,
-        invested,
-        currentValue: current,
-        profit,
-        profitPercent: profitPct,
-        updatedAt: r.updated_at,
-      };
-    });
+        return {
+          id: r.id,
+          symbol: r.symbol,
+          name: r.asset_name,
+          type: r.asset_type,
+          shares,
+          avgPrice,
+          currentPrice,
+          invested,
+          currentValue: current,
+          profit,
+          profitPercent: profitPct,
+          updatedAt: r.updated_at,
+        };
 
-    const totalProfit = totalValue - totalInvested;
+      } catch (err) {
+        // fallback if API fails
+        const shares = parseFloat(r.shares_owned);
+        const avgPrice = parseFloat(r.average_buy_price);
+        const currentPrice = parseFloat(r.current_price);
 
-    const totalProfitPct =
-      totalInvested > 0
-        ? (totalProfit / totalInvested) * 100
-        : 0;
+        const invested = shares * avgPrice;
+        const current = shares * currentPrice;
+        const profit = current - invested;
 
-    const allocationMap: Record<string, number> = {};
+        return {
+          id: r.id,
+          symbol: r.symbol,
+          name: r.asset_name,
+          type: r.asset_type,
+          shares,
+          avgPrice,
+          currentPrice,
+          invested,
+          currentValue: current,
+          profit,
+          profitPercent: 0,
+          updatedAt: r.updated_at,
+        };
+      }
+    })
+  );
+  let totalValue = 0;
+  let totalInvested = 0;
 
-    for (const h of holdings) {
-      allocationMap[h.type] =
-        (allocationMap[h.type] || 0) + h.currentValue;
-    }
-
-    const allocation = Object.entries(allocationMap).map(
-      ([type, value]) => ({
-        type,
-        value,
-        percentage:
-          totalValue > 0
-            ? Math.round((value / totalValue) * 100)
-            : 0,
-      })
-    );
-
-    return res.status(200).json({
-      holdings,
-      summary: {
-        totalValue,
-        totalInvested,
-        totalProfit,
-        totalProfitPercent: totalProfitPct,
-        holdingCount: holdings.length,
-      },
-      allocation,
-    });
+  for (const h of holdings) {
+    totalValue += h.currentValue;
+    totalInvested += h.invested;
   }
 
+  const totalProfit = totalValue - totalInvested;
+
+  const totalProfitPct =
+    totalInvested > 0
+      ? (totalProfit / totalInvested) * 100
+      : 0;
+
+  const allocationMap: Record<string, number> = {};
+
+  for (const h of holdings) {
+    allocationMap[h.type] =
+      (allocationMap[h.type] || 0) + h.currentValue;
+  }
+
+  const allocation = Object.entries(allocationMap).map(
+    ([type, value]) => ({
+      type,
+      value,
+      percentage:
+        totalValue > 0
+          ? Math.round((value / totalValue) * 100)
+          : 0,
+    })
+  );
+
+  return res.status(200).json({
+    holdings,
+    summary: {
+      totalValue,
+      totalInvested,
+      totalProfit,
+      totalProfitPercent: totalProfitPct,
+      holdingCount: holdings.length,
+    },
+    allocation,
+  });
+}
   // ───────────────── POST ─────────────────
   if (req.method === "POST") {
 

@@ -8,7 +8,7 @@ import { ClerkProvider } from '@clerk/clerk-react'
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
 if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Publishable Key")
+  console.error("Missing Publishable Key")
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -17,4 +17,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <App />
     </ClerkProvider>
   </React.StrictMode>,
+
 )
+console.log("KEY:", import.meta.env.VITE_CLERK_PUBLISHABLE_KEY)
+console.log("TEST:", import.meta.env.VITE_TEST)

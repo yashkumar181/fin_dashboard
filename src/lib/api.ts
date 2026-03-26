@@ -267,7 +267,12 @@ export function createApiClient(getToken: GetToken) {
       del<{ deleted: number }>(`/api/v1/budget?id=${id}`),
 
     // ── Investments ────────────────────────────────────────────────────────
-    getInvestments: () => get<InvestmentsResponse>("/api/v1/investments"),
+    getInvestments: async () => {
+      const res = await fetch("YOUR_REAL_API_URL_HERE");
+      const data = await res.json();
+      console.log("Investments API response:", data);
+      return data;
+},
     createHolding: (body: {
       symbol: string;
       assetName: string;
